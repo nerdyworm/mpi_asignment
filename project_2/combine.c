@@ -10,11 +10,6 @@
 
 const float G = 1;
 const int N = 8;
-struct body
-{
-  double mass;
-  double x, y, vx, vy;
-} bodies[8];
 
 
 void init_bodies() {
