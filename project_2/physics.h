@@ -1,7 +1,7 @@
 //gcc testing.c -lX11
 
 #define G 1
-#define N 32
+#define N 8
 
 struct body {
   double mass, x, y, vx, vy;

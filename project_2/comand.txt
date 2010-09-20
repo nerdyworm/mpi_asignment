@@ -1,0 +1,1 @@
+gcc -c physics.c  -o physics.o && gcc -c task_2.c -o task_2.o  && gcc task_2.o physics.o -o a.out -lm -lX11 && ./a.out
