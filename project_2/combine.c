@@ -8,15 +8,15 @@
 #include <math.h>
 
 
-const float G = 1;
+const float G = .5;
 const int N = 8;
 
 
 void init_bodies() {
 
   bodies[0].mass = 10;
-  bodies[0].x = 150;
-  bodies[0].y = 150;
+  bodies[0].x = 255;
+  bodies[0].y = 155;
   bodies[0].vx = 0;
   bodies[0].vy = 0;
 
@@ -30,18 +30,18 @@ void init_bodies() {
   bodies[2].x = 125;
   bodies[2].y = 125;
   bodies[2].vx = 0;
-  bodies[2].vy = 0;
+  bodies[2].vy = 5;
 
-  bodies[3].mass = 20;
+  bodies[3].mass = 25;
   bodies[3].x = 250;
   bodies[3].y = 250;
-  bodies[3].vx = 0;
-  bodies[3].vy = 50;
+  bodies[3].vx = 11;
+  bodies[3].vy = 16;
 
   bodies[4].mass = 15;
   bodies[4].x = 25;
   bodies[4].y = 25;
-  bodies[4].vx = 0;
+  bodies[4].vx = 5;
   bodies[4].vy = 0;
 
   bodies[5].mass = 7;
@@ -164,9 +164,7 @@ void draw() {
   XClearArea(dis, win, 0, 0, 0, 0, False);
   int i = 0;
   for(i = 0; i < N; i++) {
-    
-    //XDrawRectangle(dis, win, gc, bodies[i].x, bodies[i].y, 10, 10);
-    XDrawPoint(dis, win, gc, bodies[i].x, bodies[i].y);
+    XDrawArc(dis, win, gc, bodies[i].x, bodies[i].y, bodies[i].mass, bodies[i].mass, 0, 360 * 64);
   }  
   XFlush(dis);
 }
@@ -253,7 +251,7 @@ main () {
   while(1) {
     update();
     draw();
-    usleep(50000);
+    usleep(40000);
     //sleep(1);  
   }
 }
