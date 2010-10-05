@@ -57,8 +57,8 @@ void init_bodies(struct body bodies[]){
     int i;
     for(i = 0; i < N; i++) {
       bodies[i].mass = (int) rand() % 20 + 1;
-      bodies[i].x = 400;
-      bodies[i].y = 400;
+      bodies[i].x = 200;
+      bodies[i].y = 200;
       bodies[i].vx = (-1 + 2 * ((float)rand())/RAND_MAX) / 5;
       bodies[i].vy = (-1 + 2 * ((float)rand())/RAND_MAX) / 5;
 

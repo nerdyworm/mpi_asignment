@@ -66,7 +66,7 @@ void init_x() {
   win = XCreateSimpleWindow(dis,
                             DefaultRootWindow(dis),
                             50, 50,   // origin
-                            800, 800, // size
+                            400, 400, // size
                             0, white, // border
                             black );  // backgd
   XMapWindow( dis, win );
