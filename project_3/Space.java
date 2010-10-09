@@ -2,38 +2,45 @@ import java.util.*;
 
 public class Space
 {
-  private int x;
-  private int y;
-  private List<Object> objects;
+  public int width;
+  public int height;
+  private List<SpaceObject> objects;
   
-  public Space(int x, int y)
+  public Space(int width, int height)
   {
-    this.x = x;
-    this.y = y;
-    objects = new ArrayList<Object>();
+    this.width = width;
+    this.height = height;
+    objects = new ArrayList<SpaceObject>();
   }
   
-  public void add(Object obj)
+  public void add(SpaceObject obj)
   {
     objects.add(obj);
   }
   
-  public int getX()
+  public List<SpaceObject> objectsIn(int x, int  y)
   {
-    return x;
+    List<SpaceObject> inSpace = new ArrayList<SpaceObject>();
+    for(SpaceObject o : objects)
+    {
+      if(o.x == x && o.y == y)
+        inSpace.add(o);
+    }
+    
+    return inSpace;
   }
-  
-  public int getY()
-  {
-    return y;
-  }
-  
+
   public String toString()
   {
     String str = "";
     for(Object o : objects)
       str += o.toString();
     return str + "";
+  }
+  
+  public List<SpaceObject> objects()
+  {
+    return objects;
   }
   
 }
