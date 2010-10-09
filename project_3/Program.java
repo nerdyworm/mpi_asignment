@@ -10,7 +10,9 @@ public class Program
     //program.runSingleThread(16);
     //program.runSingleThread(32);
     
+    program.runMultiThread(8);
     program.runMultiThread(16);
+    program.runMultiThread(32);
   }
   
   public Program()
@@ -19,6 +21,8 @@ public class Program
   
   public void runMultiThread(int numbirds)  throws Exception
   {
+  
+    System.out.println("Running multithreaded with " + numbirds + " birds.");
     Space space = new Space(10, 10);
     Aircraft aircraft = new Aircraft(space);
     List<Bird> birds = new ArrayList<Bird>();
@@ -32,19 +36,26 @@ public class Program
       birds.add(b);
     }
     
-    for(Bird b: birds) b.start();
+    for(Bird b: birds) 
+      b.start();
+      
     aircraft.start();
     
-  
     while(aircraft.flying && !aircraft.arrived())
     {
       printSpaces(space);
-      Thread.sleep(1000);
+      Thread.sleep(500);
     }
     
     for(Bird b: birds) 
       b.endThread();
     
+    printSpaces(space);
+    
+    if(aircraft.arrived())
+    {
+      System.out.println("woooot we made it!");
+    }
   }
   
   public void runSingleThread(int numbirds)
@@ -102,13 +113,15 @@ public class Program
         for(SpaceObject o: space.objectsIn(j, i))
         { 
             System.out.print(o);
-            width--;
+            if(o instanceof Aircraft)
+              width -= 3;
+            else
+              width--;
         }
         
         for(int w = 0; w < width; w++)
           System.out.print(" ");
           
-        
         System.out.print(" |");
       } 
       System.out.println("\n------------------------------------------------------------------------");

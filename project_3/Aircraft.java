@@ -16,7 +16,12 @@ public class Aircraft extends SpaceObject
   
   public String toString()
   {
-    return "a";
+    if (engines == 2)
+      return "-a-";
+    else if (engines == 1)
+      return " a-";
+    else
+      return " a ";
   }
   
   public void move()
@@ -93,7 +98,7 @@ public class Aircraft extends SpaceObject
         {
           b.airplane_flag = true;
           engines--;
-          System.out.println("Splat! We hit a bird. We have: " + engines + " engines left.");
+          //System.out.println("\nSplat! We hit a bird. We have: " + engines + " engines left.");
         }
       }
     }
@@ -107,12 +112,17 @@ public class Aircraft extends SpaceObject
   
   public void run()
   {
+      try{
+        Thread.sleep(1000);
+      } catch (Exception e) { }
+    
+    
     while(flying && !arrived())
     {
       applyRules();
       move();
       try{
-        Thread.sleep(1000 * 2);
+        Thread.sleep(1000);
       } catch (Exception e) { }
     }
   }

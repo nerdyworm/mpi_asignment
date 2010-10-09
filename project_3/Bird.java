@@ -24,8 +24,10 @@ public class Bird extends SpaceObject
   {
     if(alive)
       return "b";
-    else
-      return " ";
+    if(airplane_flag)
+      return "x";
+    
+    return " ";
   }
   
   
@@ -85,7 +87,7 @@ public class Bird extends SpaceObject
       if(o instanceof Aircraft)
       {
         alive = false;
-        System.out.println("Bird when splat! Poor lil guy never stood a chance :(");
+        //System.out.println("\nBird when splat! Poor lil guy never stood a chance :(");
       }
     }
   }
@@ -97,12 +99,16 @@ public class Bird extends SpaceObject
   
   public void run()
   {
+     try{
+        Thread.sleep(1000);
+      } catch (Exception e) { }
+    
     while(alive && running)
     {
       applyRules();
       move();
       try{
-        Thread.sleep(1000 * 2);
+        Thread.sleep(1000);
       } catch (Exception e) { }
     }
   }
