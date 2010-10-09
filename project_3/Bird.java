@@ -3,6 +3,8 @@ import java.util.*;
 public class Bird extends SpaceObject
 {
   public boolean alive = true;
+  public boolean airplane_flag = false;//used to make sure airplane knows it hit the bird
+  
   private Random random;
   public Bird(Space space)
   {
@@ -19,8 +21,21 @@ public class Bird extends SpaceObject
   
   public String toString()
   {
-    return "><";
+    if(alive)
+      return "b";
+    else
+      return " ";
   }
+  
+  
+  public void move()
+  { 
+    if(alive)
+    {
+      moveTo(nextMove());
+    }
+  }
+  
   
   public int[] nextMove()
   {
@@ -31,9 +46,9 @@ public class Bird extends SpaceObject
     
     while(true)
     {
-      move[0] = this.x + possible[random.nextInt(possible.length - 1)];
-      move[1] = this.y + possible[random.nextInt(possible.length - 1)];
-      System.out.println("move: " + move[0] + "," + move[1]);
+      move[0] = this.x + possible[random.nextInt(possible.length)];
+      move[1] = this.y + possible[random.nextInt(possible.length)];
+      
       if(validMove(move[0], move[1])) break;
     }
     
@@ -58,35 +73,21 @@ public class Bird extends SpaceObject
   
   public void moveTo(int x, int y)
   {
-    System.out.println("Bird from: " + this.x + ", " + this.y + " to:" + x + ", " + y);
+    //System.out.println("Bird from: " + this.x + ", " + this.y + " to:" + x + ", " + y);
     this.x = x;
     this.y = y;
   }
   
   public void applyRules()
   {
-  
-    if(alive)
-    {
-      moveTo(nextMove());
-    }
-    
-    /*
     for(SpaceObject o: space.objectsIn(x, y))
     {
-      if(o instanceof Bird)
+      if(o instanceof Aircraft)
       {
-        engines--;
-        System.out.println("OMG PANIC WE HIT A BIRD");
-        System.out.println("We have: " + engines + " engines left.");
+        alive = false;
+        System.out.println("OMG PANIC WE HIT A AIRPLANE :( ");
       }
     }
-    
-    if(engines <= 0)
-    {
-      System.out.println("We crashed....");
-      flying = false;
-    } 
-    */
   }
+  
 }

@@ -11,6 +11,11 @@ public class SpaceObject
     this.space = space;
   }
   
+  public void move()
+  {
+    System.out.println("lol interface");
+  }
+  
   public void applyRules()
   {
     System.out.println("lol interface");

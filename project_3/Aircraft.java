@@ -16,7 +16,15 @@ public class Aircraft extends SpaceObject
   
   public String toString()
   {
-    return "-|-";
+    return "a";
+  }
+  
+  public void move()
+  {
+    if(engines > 0 && flying)
+    {
+      moveTo(nextMove());
+    }
   }
   
   public int[] nextMove()
@@ -40,7 +48,7 @@ public class Aircraft extends SpaceObject
   
   public void moveTo(int x, int y)
   {
-    System.out.println("Plane: from: " + this.x + ", " + this.y + " to:" + x + ", " + y);
+    //System.out.println("Plane: from: " + this.x + ", " + this.y + " to:" + x + ", " + y);
     
     if(x < 0) 
     {
@@ -75,20 +83,19 @@ public class Aircraft extends SpaceObject
   
   public void applyRules()
   {
-  
-    if(engines > 0 && flying)
-    {
-      moveTo(nextMove());
-    }
-    
-    
     for(SpaceObject o: space.objectsIn(x, y))
     {
       if(o instanceof Bird)
       {
-        engines--;
-        System.out.println("OMG PANIC WE HIT A BIRD");
-        System.out.println("We have: " + engines + " engines left.");
+        Bird b = (Bird) o;
+        
+        if(!b.airplane_flag)
+        {
+          b.airplane_flag = true;
+          engines--;
+          System.out.println("OMG PANIC WE HIT A BIRD");
+          System.out.println("We have: " + engines + " engines left.");
+        }
       }
     }
     
