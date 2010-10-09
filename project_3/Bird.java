@@ -7,6 +7,7 @@ public class Bird extends SpaceObject
   private boolean running = true;
   
   private Random random;
+  
   public Bird(Space space)
   {
     super(space);
@@ -30,7 +31,6 @@ public class Bird extends SpaceObject
     return " ";
   }
   
-  
   public void move()
   { 
     if(alive)
@@ -39,18 +39,15 @@ public class Bird extends SpaceObject
     }
   }
   
-  
   public int[] nextMove()
   {
     int[] move = {0, 0};
-    
-    int[] possible = {-1, 0, 1};
-    
+    int[] possible_moves = {-1, 0, 1};
     
     while(true)
     {
-      move[0] = this.x + possible[random.nextInt(possible.length)];
-      move[1] = this.y + possible[random.nextInt(possible.length)];
+      move[0] = this.x + possible_moves[random.nextInt(possible_moves.length)];
+      move[1] = this.y + possible_moves[random.nextInt(possible_moves.length)];
       
       if(validMove(move[0], move[1])) break;
     }
@@ -87,7 +84,7 @@ public class Bird extends SpaceObject
       if(o instanceof Aircraft)
       {
         alive = false;
-        //System.out.println("\nBird when splat! Poor lil guy never stood a chance :(");
+        System.out.println("\nBird when splat! Poor lil guy never stood a chance :(");
       }
     }
   }
@@ -99,10 +96,6 @@ public class Bird extends SpaceObject
   
   public void run()
   {
-     try{
-        Thread.sleep(1000);
-      } catch (Exception e) { }
-    
     while(alive && running)
     {
       applyRules();

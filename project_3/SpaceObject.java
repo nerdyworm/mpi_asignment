@@ -12,14 +12,10 @@ public class SpaceObject extends Thread
   }
   
   public void move()
-  {
-    System.out.println("lol interface");
-  }
+  {}
   
   public void applyRules()
-  {
-    System.out.println("lol interface");
-  }
+  {}
   
   public int[] randomSpace()
   {
@@ -30,7 +26,5 @@ public class SpaceObject extends Thread
   }
   
   public void run()
-  {
-    System.out.println(Thread.currentThread().getName());
-  }
+  {}
 }

@@ -6,6 +6,7 @@ public class Aircraft extends SpaceObject
   private int dest_y;
   
   private int engines = 2;
+  
   public boolean flying = true;
   
   public Aircraft(Space space)
@@ -53,8 +54,6 @@ public class Aircraft extends SpaceObject
   
   public void moveTo(int x, int y)
   {
-    //System.out.println("Plane: from: " + this.x + ", " + this.y + " to:" + x + ", " + y);
-    
     if(x < 0) 
     {
       System.out.println("invalid x move");
@@ -105,18 +104,13 @@ public class Aircraft extends SpaceObject
     
     if(engines <= 0)
     {
-      System.out.println("We crashed....");
+      System.out.println("We crashed.... :-(");
       flying = false;
     }  
   }
   
   public void run()
   {
-      try{
-        Thread.sleep(1000);
-      } catch (Exception e) { }
-    
-    
     while(flying && !arrived())
     {
       applyRules();

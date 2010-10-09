@@ -6,30 +6,26 @@ public class Program
   {
     Program program = new Program();
     
-    //program.runSingleThread(8);
-    //program.runSingleThread(16);
-    //program.runSingleThread(32);
+    program.runSingleThread(8);
+    program.runSingleThread(16);
+    program.runSingleThread(32);
     
     program.runMultiThread(8);
     program.runMultiThread(16);
     program.runMultiThread(32);
   }
   
-  public Program()
-  {
-  }
-  
   public void runMultiThread(int numbirds)  throws Exception
   {
-  
     System.out.println("Running multithreaded with " + numbirds + " birds.");
-    Space space = new Space(10, 10);
-    Aircraft aircraft = new Aircraft(space);
-    List<Bird> birds = new ArrayList<Bird>();
     
+    Space space = new Space(10, 10);
+    
+    Aircraft aircraft = new Aircraft(space);
     aircraft.setStart(0, 0);
     aircraft.setDest(9, 9);
     
+    List<Bird> birds = new ArrayList<Bird>();
     for(int i = 0; i < numbirds; i++)
     {
       Bird b = new Bird(space);
@@ -44,7 +40,7 @@ public class Program
     while(aircraft.flying && !aircraft.arrived())
     {
       printSpaces(space);
-      Thread.sleep(500);
+      Thread.sleep(100);
     }
     
     for(Bird b: birds) 
@@ -61,16 +57,17 @@ public class Program
   public void runSingleThread(int numbirds)
   {
     System.out.println("Running with " + numbirds + " birds.");
+    
     Space space = new Space(10, 10);
+    
+    Aircraft aircraft = new Aircraft(space);
+    aircraft.setStart(0, 0);
+    aircraft.setDest(9, 9);
     
     for(int i = 0; i < numbirds; i++)
     {
       new Bird(space);
     }
-    
-    Aircraft aircraft = new Aircraft(space);
-    aircraft.setStart(0, 0);
-    aircraft.setDest(9, 9);
     
     printSpaces(space);
     
@@ -96,12 +93,10 @@ public class Program
   {
     System.out.println("\n-------------------------------------------------------------------------");
     System.out.print("  |");
-    for(int j = 0; j < space.width; j++) 
+    for(int j = 0; j < space.width; j++)  
     {
       System.out.print("   " + j + "  |");
     }
-    
-    
     System.out.println("\n-------------------------------------------------------------------------");
     
     for(int i = 0; i < space.height; i++) 
@@ -126,7 +121,6 @@ public class Program
       } 
       System.out.println("\n------------------------------------------------------------------------");
     }
-    
     System.out.println("");
   }
 }
