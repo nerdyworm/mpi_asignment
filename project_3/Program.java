@@ -2,20 +2,52 @@ import java.util.*;
 
 public class Program
 { 
-  public static void main(String[] args)
+  public static void main(String[] args) throws Exception
   {
     Program program = new Program();
     
-    //program.run(8);
-    //program.run(16);
-    program.run(32);
+    //program.runSingleThread(8);
+    //program.runSingleThread(16);
+    //program.runSingleThread(32);
+    
+    program.runMultiThread(16);
   }
   
   public Program()
   {
   }
   
-  public void run(int numbirds)
+  public void runMultiThread(int numbirds)  throws Exception
+  {
+    Space space = new Space(10, 10);
+    Aircraft aircraft = new Aircraft(space);
+    List<Bird> birds = new ArrayList<Bird>();
+    
+    aircraft.setStart(0, 0);
+    aircraft.setDest(9, 9);
+    
+    for(int i = 0; i < numbirds; i++)
+    {
+      Bird b = new Bird(space);
+      birds.add(b);
+    }
+    
+    for(Bird b: birds) b.start();
+    aircraft.start();
+    
+  
+    while(aircraft.flying && !aircraft.arrived())
+    {
+      printSpaces(space);
+      Thread.sleep(1000);
+    }
+    
+    for(Bird b: birds) 
+      b.endThread();
+    
+  }
+  
+  public void runSingleThread(int numbirds)
   {
     System.out.println("Running with " + numbirds + " birds.");
     Space space = new Space(10, 10);

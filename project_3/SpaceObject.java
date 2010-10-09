@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class SpaceObject
+public class SpaceObject extends Thread
 {
   protected Space space;
   public int x;
@@ -27,5 +27,10 @@ public class SpaceObject
     int[] space = {random.nextInt(this.space.width), random.nextInt(this.space.height)};
 
     return space;
+  }
+  
+  public void run()
+  {
+    System.out.println(Thread.currentThread().getName());
   }
 }

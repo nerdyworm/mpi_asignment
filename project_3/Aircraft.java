@@ -93,8 +93,7 @@ public class Aircraft extends SpaceObject
         {
           b.airplane_flag = true;
           engines--;
-          System.out.println("OMG PANIC WE HIT A BIRD");
-          System.out.println("We have: " + engines + " engines left.");
+          System.out.println("Splat! We hit a bird. We have: " + engines + " engines left.");
         }
       }
     }
@@ -104,5 +103,17 @@ public class Aircraft extends SpaceObject
       System.out.println("We crashed....");
       flying = false;
     }  
+  }
+  
+  public void run()
+  {
+    while(flying && !arrived())
+    {
+      applyRules();
+      move();
+      try{
+        Thread.sleep(1000 * 2);
+      } catch (Exception e) { }
+    }
   }
 }

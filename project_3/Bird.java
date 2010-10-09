@@ -4,6 +4,7 @@ public class Bird extends SpaceObject
 {
   public boolean alive = true;
   public boolean airplane_flag = false;//used to make sure airplane knows it hit the bird
+  private boolean running = true;
   
   private Random random;
   public Bird(Space space)
@@ -73,7 +74,6 @@ public class Bird extends SpaceObject
   
   public void moveTo(int x, int y)
   {
-    //System.out.println("Bird from: " + this.x + ", " + this.y + " to:" + x + ", " + y);
     this.x = x;
     this.y = y;
   }
@@ -85,8 +85,25 @@ public class Bird extends SpaceObject
       if(o instanceof Aircraft)
       {
         alive = false;
-        System.out.println("OMG PANIC WE HIT A AIRPLANE :( ");
+        System.out.println("Bird when splat! Poor lil guy never stood a chance :(");
       }
+    }
+  }
+  
+  public void endThread()
+  {
+    running = false;
+  }
+  
+  public void run()
+  {
+    while(alive && running)
+    {
+      applyRules();
+      move();
+      try{
+        Thread.sleep(1000 * 2);
+      } catch (Exception e) { }
     }
   }
   
