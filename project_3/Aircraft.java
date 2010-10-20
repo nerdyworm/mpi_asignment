@@ -121,3 +121,11 @@ public class Aircraft extends SpaceObject
     }
   }
 }
+
+/*
+
+
+only needs to move in diangles or horizontal
+
+start to end point, find straight path
+*/

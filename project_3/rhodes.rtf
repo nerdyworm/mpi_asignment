@@ -1,0 +1,739 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf540
+{\fonttbl\f0\fnil\fcharset0 Monaco;\f1\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red170\green13\blue145;\red28\green0\blue207;\red196\green26\blue22;
+\red0\green116\blue0;}
+\margl1440\margr1440\vieww14040\viewh8000\viewkind0
+\deftab480
+\pard\tx480\pardeftab480\ql\qnatural\pardirnatural
+
+\f0\fs20 \cf0 \CocoaLigature0 Benjamin Rhodes\
+\
+Code explanation:\
+\
+Aircraft: \
+Represents and aircraft with two engines, moves to present destination in each time period.  The text output "-a-" represents two engines, "a-" represents one engine, and "a" no engines. \
+\
+Bird: \
+Represents a Bird, makes random 1 space move in each time period. Output "b" means alive, "x" means dead, useful for determining where a plane hit the bird.\
+\
+Space: \
+Is the world which these objects reside in.\
+\
+SpaceObject: \
+Is the super class of Bird and Plane to consolidate identical behavior of both classes. \
+\
+Program:\
+Runs the demo first in single threaded mode then in multi threaded mode.  Both modes spawn a single plane at 0, 0 and a destination of 9,9.  Each mode also generates 8, 16, and 32 birds spawning at random locations in the Space.  \
+\
+Single threaded mode simply updates each object sequentially until the Airplane has reached it's destination or has crashed. \
+\
+Multithreaded mode tells each airplane and bird to start a thread in which it applies it's rules.  The main program thread prints out a text representation of the space every 500ms.  Each thread for birds and planes sleeps for one second in order to have a more visually pleasing output.\
+\
+Sample Output bellow code listing.\
+\
+Conclusion:\
+It was very easy to make mistakes in the multithreaded version.  One was that a bird would mark itself dead before the plane would mark it self as hit.  This required the bird to have a second flag which the plane thread checked and then updated for popper functionality. \
+\
+\
+File: Aircraft.java
+\f1\fs24 \CocoaLigature1 \
+
+\f0\fs20 \cf2 \CocoaLigature0 import\cf0  java.util.*;\
+\
+\cf2 public\cf0  \cf2 class\cf0  Aircraft \cf2 extends\cf0  SpaceObject\
+\{\
+  \cf2 private\cf0  \cf2 int\cf0  dest_x;\
+  \cf2 private\cf0  \cf2 int\cf0  dest_y;\
+  \
+  \cf2 private\cf0  \cf2 int\cf0  engines = \cf3 2\cf0 ;\
+  \
+  \cf2 public\cf0  \cf2 boolean\cf0  flying = \cf2 true\cf0 ;\
+  \
+  \cf2 public\cf0  Aircraft(Space space)\
+  \{\
+    \cf2 super\cf0 (space);\
+    space.add(\cf2 this\cf0 );\
+  \}\
+  \
+  \cf2 public\cf0  String toString()\
+  \{\
+    \cf2 if\cf0  (engines == \cf3 2\cf0 )\
+      \cf2 return\cf0  \cf4 "-a-"\cf0 ;\
+    \cf2 else\cf0  \cf2 if\cf0  (engines == \cf3 1\cf0 )\
+      \cf2 return\cf0  \cf4 " a-"\cf0 ;\
+    \cf2 else\cf0 \
+      \cf2 return\cf0  \cf4 " a "\cf0 ;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  move()\
+  \{\
+    \cf2 if\cf0 (engines > \cf3 0\cf0  && flying)\
+    \{\
+      moveTo(nextMove());\
+    \}\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 int\cf0 [] nextMove()\
+  \{\
+    \cf2 int\cf0 [] ret = \{-\cf3 1\cf0 , -\cf3 1\cf0 \};\
+    \
+    \
+    \cf2 if\cf0 (dest_x > x)\
+      ret[\cf3 0\cf0 ] = x + \cf3 1\cf0 ;\
+      \
+    \cf2 if\cf0 (dest_y > y)\
+      ret[\cf3 1\cf0 ] = y + \cf3 1\cf0 ;\
+    \
+    \cf2 return\cf0  ret;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  moveTo(\cf2 int\cf0 [] move)\
+  \{\
+    moveTo(move[\cf3 0\cf0 ], move[\cf3 1\cf0 ]);\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  moveTo(\cf2 int\cf0  x, \cf2 int\cf0  y)\
+  \{\
+    \cf2 if\cf0 (x < \cf3 0\cf0 ) \
+    \{\
+      System.out.println(\cf4 "invalid x move"\cf0 );\
+    \} \cf2 else\cf0 \
+      \cf2 this\cf0 .x = x;\
+    \
+    \cf2 if\cf0 (y < \cf3 0\cf0 ) \
+    \{\
+      System.out.println(\cf4 "invalid y move"\cf0 );\
+    \} \cf2 else\cf0 \
+      \cf2 this\cf0 .y = y;\
+      \
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  setStart(\cf2 int\cf0  x, \cf2 int\cf0  y)\
+  \{\
+    \cf2 this\cf0 .x = x;\
+    \cf2 this\cf0 .y = y;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  setDest(\cf2 int\cf0  x, \cf2 int\cf0  y)\
+  \{\
+    \cf2 this\cf0 .dest_x = x;\
+    \cf2 this\cf0 .dest_y = y;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 boolean\cf0  arrived()\
+  \{\
+    \cf2 return\cf0  x == dest_x && y == dest_y;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  applyRules()\
+  \{\
+    \cf2 for\cf0 (SpaceObject o: space.objectsIn(x, y))\
+    \{\
+      \cf2 if\cf0 (o \cf2 instanceof\cf0  Bird)\
+      \{\
+        Bird b = (Bird) o;\
+        \
+        \cf2 if\cf0 (!b.airplane_flag)\
+        \{\
+          b.airplane_flag = \cf2 true\cf0 ;\
+          engines--;\
+          \cf5 //System.out.println("\\nSplat! We hit a bird. We have: " + engines + " engines left.");\cf0 \
+        \}\
+      \}\
+    \}\
+    \
+    \cf2 if\cf0 (engines <= \cf3 0\cf0 )\
+    \{\
+      System.out.println(\cf4 "We crashed.... :-("\cf0 );\
+      flying = \cf2 false\cf0 ;\
+    \}  \
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  run()\
+  \{\
+    \cf2 while\cf0 (flying && !arrived())\
+    \{\
+      applyRules();\
+      move();\
+      \cf2 try\cf0 \{\
+        Thread.sleep(\cf3 1000\cf0 );\
+      \} \cf2 catch\cf0  (Exception e) \{ \}\
+    \}\
+  \}\
+\}\
+\
+File: Bird.java\
+\cf2 import\cf0  java.util.*;\
+\
+\cf2 public\cf0  \cf2 class\cf0  Bird \cf2 extends\cf0  SpaceObject\
+\{\
+  \cf2 public\cf0  \cf2 boolean\cf0  alive = \cf2 true\cf0 ;\
+  \cf2 public\cf0  \cf2 boolean\cf0  airplane_flag = \cf2 false\cf0 ;\cf5 //used to make sure airplane knows it hit the bird\cf0 \
+  \cf2 private\cf0  \cf2 boolean\cf0  running = \cf2 true\cf0 ;\
+  \
+  \cf2 private\cf0  Random random;\
+  \
+  \cf2 public\cf0  Bird(Space space)\
+  \{\
+    \cf2 super\cf0 (space);\
+    \
+    \cf2 int\cf0 [] randomSpace = randomSpace();\
+    \cf2 this\cf0 .x = randomSpace[\cf3 0\cf0 ];\
+    \cf2 this\cf0 .y = randomSpace[\cf3 1\cf0 ];\
+    \
+    space.add(\cf2 this\cf0 );\
+    \
+    random = \cf2 new\cf0  Random();\
+  \}\
+  \
+  \cf2 public\cf0  String toString()\
+  \{\
+    \cf2 if\cf0 (alive)\
+      \cf2 return\cf0  \cf4 "b"\cf0 ;\
+    \cf2 if\cf0 (airplane_flag)\
+      \cf2 return\cf0  \cf4 "x"\cf0 ;\
+    \
+    \cf2 return\cf0  \cf4 " "\cf0 ;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  move()\
+  \{ \
+    \cf2 if\cf0 (alive)\
+    \{\
+      moveTo(nextMove());\
+    \}\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 int\cf0 [] nextMove()\
+  \{\
+    \cf2 int\cf0 [] move = \{\cf3 0\cf0 , \cf3 0\cf0 \};\
+    \cf2 int\cf0 [] possible_moves = \{-\cf3 1\cf0 , \cf3 0\cf0 , \cf3 1\cf0 \};\
+    \
+    \cf2 while\cf0 (\cf2 true\cf0 )\
+    \{\
+      move[\cf3 0\cf0 ] = \cf2 this\cf0 .x + possible_moves[random.nextInt(possible_moves.length)];\
+      move[\cf3 1\cf0 ] = \cf2 this\cf0 .y + possible_moves[random.nextInt(possible_moves.length)];\
+      \
+      \cf2 if\cf0 (validMove(move[\cf3 0\cf0 ], move[\cf3 1\cf0 ])) \cf2 break\cf0 ;\
+    \}\
+    \
+    \cf2 return\cf0  move;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 boolean\cf0  validMove(\cf2 int\cf0  x, \cf2 int\cf0  y)\
+  \{\
+    \cf2 if\cf0 (x < \cf3 0\cf0  || x > \cf2 this\cf0 .space.width - \cf3 1\cf0 )\
+      \cf2 return\cf0  \cf2 false\cf0 ;\
+      \
+    \cf2 if\cf0 (y < \cf3 0\cf0  || y > \cf2 this\cf0 .space.height - \cf3 1\cf0 )\
+      \cf2 return\cf0  \cf2 false\cf0 ;\
+      \
+    \cf2 return\cf0  \cf2 true\cf0 ;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  moveTo(\cf2 int\cf0 [] move)\
+  \{\
+    moveTo(move[\cf3 0\cf0 ], move[\cf3 1\cf0 ]);\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  moveTo(\cf2 int\cf0  x, \cf2 int\cf0  y)\
+  \{\
+    \cf2 this\cf0 .x = x;\
+    \cf2 this\cf0 .y = y;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  applyRules()\
+  \{\
+    \cf2 for\cf0 (SpaceObject o: space.objectsIn(x, y))\
+    \{\
+      \cf2 if\cf0 (o \cf2 instanceof\cf0  Aircraft)\
+      \{\
+        alive = \cf2 false\cf0 ;\
+        System.out.println(\cf4 "\\nBird when splat! Poor lil guy never stood a chance :("\cf0 );\
+      \}\
+    \}\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  endThread()\
+  \{\
+    running = \cf2 false\cf0 ;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  run()\
+  \{\
+    \cf2 while\cf0 (alive && running)\
+    \{\
+      applyRules();\
+      move();\
+      \cf2 try\cf0 \{\
+        Thread.sleep(\cf3 1000\cf0 );\
+      \} \cf2 catch\cf0  (Exception e) \{ \}\
+    \}\
+  \}\
+  \
+\}\
+\
+File: Program.java\
+\cf2 import\cf0  java.util.*;\
+\
+\cf2 public\cf0  \cf2 class\cf0  Program\
+\{ \
+  \cf2 public\cf0  \cf2 static\cf0  \cf2 void\cf0  main(String[] args) \cf2 throws\cf0  Exception\
+  \{\
+    Program program = \cf2 new\cf0  Program();\
+    \
+    program.runSingleThread(\cf3 8\cf0 );\
+    program.runSingleThread(\cf3 16\cf0 );\
+    program.runSingleThread(\cf3 32\cf0 );\
+    \
+    program.runMultiThread(\cf3 8\cf0 );\
+    program.runMultiThread(\cf3 16\cf0 );\
+    program.runMultiThread(\cf3 32\cf0 );\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  runMultiThread(\cf2 int\cf0  numbirds)  \cf2 throws\cf0  Exception\
+  \{\
+    System.out.println(\cf4 "Running multithreaded with "\cf0  + numbirds + \cf4 " birds."\cf0 );\
+    \
+    Space space = \cf2 new\cf0  Space(\cf3 10\cf0 , \cf3 10\cf0 );\
+    \
+    Aircraft aircraft = \cf2 new\cf0  Aircraft(space);\
+    aircraft.setStart(\cf3 0\cf0 , \cf3 0\cf0 );\
+    aircraft.setDest(\cf3 9\cf0 , \cf3 9\cf0 );\
+    \
+    List<Bird> birds = \cf2 new\cf0  ArrayList<Bird>();\
+    \cf2 for\cf0 (\cf2 int\cf0  i = \cf3 0\cf0 ; i < numbirds; i++)\
+    \{\
+      Bird b = \cf2 new\cf0  Bird(space);\
+      birds.add(b);\
+    \}\
+    \
+    \cf2 for\cf0 (Bird b: birds) \
+      b.start();\
+      \
+    aircraft.start();\
+    \
+    \cf2 while\cf0 (aircraft.flying && !aircraft.arrived())\
+    \{\
+      printSpaces(space);\
+      Thread.sleep(\cf3 100\cf0 );\
+    \}\
+    \
+    \cf2 for\cf0 (Bird b: birds) \
+      b.endThread();\
+    \
+    printSpaces(space);\
+    \
+    \cf2 if\cf0 (aircraft.arrived())\
+    \{\
+      System.out.println(\cf4 "woooot we made it!"\cf0 );\
+    \}\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  runSingleThread(\cf2 int\cf0  numbirds)\
+  \{\
+    System.out.println(\cf4 "Running with "\cf0  + numbirds + \cf4 " birds."\cf0 );\
+    \
+    Space space = \cf2 new\cf0  Space(\cf3 10\cf0 , \cf3 10\cf0 );\
+    \
+    Aircraft aircraft = \cf2 new\cf0  Aircraft(space);\
+    aircraft.setStart(\cf3 0\cf0 , \cf3 0\cf0 );\
+    aircraft.setDest(\cf3 9\cf0 , \cf3 9\cf0 );\
+    \
+    \cf2 for\cf0 (\cf2 int\cf0  i = \cf3 0\cf0 ; i < numbirds; i++)\
+    \{\
+      \cf2 new\cf0  Bird(space);\
+    \}\
+    \
+    printSpaces(space);\
+    \
+    \cf2 while\cf0 (aircraft.flying && !aircraft.arrived())\
+    \{\
+      \cf2 for\cf0 (SpaceObject o : space.objects())\
+        o.applyRules();\
+        \
+      \cf2 for\cf0 (SpaceObject o : space.objects())\
+        o.move();\
+      \
+      printSpaces(space);\
+    \}\
+    \
+    \cf2 if\cf0 (aircraft.arrived())\
+    \{\
+      System.out.println(\cf4 "We made it!!!"\cf0 );\
+    \}\
+  \
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  printSpaces(Space space) \
+  \{\
+    System.out.println(\cf4 "\\n-------------------------------------------------------------------------"\cf0 );\
+    System.out.print(\cf4 "  |"\cf0 );\
+    \cf2 for\cf0 (\cf2 int\cf0  j = \cf3 0\cf0 ; j < space.width; j++)  \
+    \{\
+      System.out.print(\cf4 "   "\cf0  + j + \cf4 "  |"\cf0 );\
+    \}\
+    System.out.println(\cf4 "\\n-------------------------------------------------------------------------"\cf0 );\
+    \
+    \cf2 for\cf0 (\cf2 int\cf0  i = \cf3 0\cf0 ; i < space.height; i++) \
+    \{\
+      System.out.print(i + \cf4 " |"\cf0 );\
+      \cf2 for\cf0 (\cf2 int\cf0  j = \cf3 0\cf0 ; j < space.width; j++) \
+      \{\
+        \cf2 int\cf0  width = \cf3 5\cf0 ;\
+        \cf2 for\cf0 (SpaceObject o: space.objectsIn(j, i))\
+        \{ \
+            System.out.print(o);\
+            \cf2 if\cf0 (o \cf2 instanceof\cf0  Aircraft)\
+              width -= \cf3 3\cf0 ;\
+            \cf2 else\cf0 \
+              width--;\
+        \}\
+        \
+        \cf2 for\cf0 (\cf2 int\cf0  w = \cf3 0\cf0 ; w < width; w++)\
+          System.out.print(\cf4 " "\cf0 );\
+          \
+        System.out.print(\cf4 " |"\cf0 );\
+      \} \
+      System.out.println(\cf4 "\\n------------------------------------------------------------------------"\cf0 );\
+    \}\
+    System.out.println(\cf4 ""\cf0 );\
+  \}\
+\}\
+\
+File: Space.java\
+\cf2 import\cf0  java.util.*;\
+\
+\cf2 public\cf0  \cf2 class\cf0  Space\
+\{\
+  \cf2 public\cf0  \cf2 int\cf0  width;\
+  \cf2 public\cf0  \cf2 int\cf0  height;\
+  \cf2 private\cf0  List<SpaceObject> objects;\
+  \
+  \cf2 public\cf0  Space(\cf2 int\cf0  width, \cf2 int\cf0  height)\
+  \{\
+    \cf2 this\cf0 .width = width;\
+    \cf2 this\cf0 .height = height;\
+    objects = \cf2 new\cf0  ArrayList<SpaceObject>();\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  add(SpaceObject obj)\
+  \{\
+    objects.add(obj);\
+  \}\
+  \
+  \cf2 public\cf0  List<SpaceObject> objectsIn(\cf2 int\cf0  x, \cf2 int\cf0   y)\
+  \{\
+    List<SpaceObject> inSpace = \cf2 new\cf0  ArrayList<SpaceObject>();\
+    \cf2 for\cf0 (SpaceObject o : objects)\
+    \{\
+      \cf2 if\cf0 (o.x == x && o.y == y)\
+        inSpace.add(o);\
+    \}\
+    \
+    \cf2 return\cf0  inSpace;\
+  \}\
+\
+  \cf2 public\cf0  String toString()\
+  \{\
+    String str = \cf4 ""\cf0 ;\
+    \cf2 for\cf0 (Object o : objects)\
+      str += o.toString();\
+    \cf2 return\cf0  str + \cf4 ""\cf0 ;\
+  \}\
+  \
+  \cf2 public\cf0  List<SpaceObject> objects()\
+  \{\
+    \cf2 return\cf0  objects;\
+  \}\
+  \
+\}\
+\
+File: SpaceObject.java\
+\cf2 import\cf0  java.util.*;\
+\
+\cf2 public\cf0  \cf2 class\cf0  SpaceObject \cf2 extends\cf0  Thread\
+\{\
+  \cf2 protected\cf0  Space space;\
+  \cf2 public\cf0  \cf2 int\cf0  x;\
+  \cf2 public\cf0  \cf2 int\cf0  y;\
+  \
+  \cf2 public\cf0  SpaceObject(Space space)\
+  \{\
+    \cf2 this\cf0 .space = space;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  move()\
+  \{\}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  applyRules()\
+  \{\}\
+  \
+  \cf2 public\cf0  \cf2 int\cf0 [] randomSpace()\
+  \{\
+    Random random = \cf2 new\cf0  Random();\
+    \cf2 int\cf0 [] space = \{random.nextInt(\cf2 this\cf0 .space.width), random.nextInt(\cf2 this\cf0 .space.height)\};\
+\
+    \cf2 return\cf0  space;\
+  \}\
+  \
+  \cf2 public\cf0  \cf2 void\cf0  run()\
+  \{\}\
+\}\
+\
+Smaple Output\
+Running with 8 birds.\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |-a-b  |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |b     |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |      |      |      |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |      |      |b     |      |      |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |b     |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |b     |      |      |      |      |      |      |      |b     |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+Bird when splat! Poor lil guy never stood a chance :(\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+1 |      | a-   |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |bb    |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |      |b     |b     |      |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |b     |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |      |      |      |      |      |      |      |b     |      |\
+------------------------------------------------------------------------\
+9 |b     |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      | a-   |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |b     |      |      |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |b     |      |b     |      |      |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |b     |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      | a-   |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |bb    |      |      |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |      |      |b     |      |      |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |      |b     |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |b     |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |b     |b     |      | a-   |      |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |      |      |b     |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |b     |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |b     |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |b     |      |      | a-   |b     |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |      |      |      |      |      |b     |      |\
+------------------------------------------------------------------------\
+8 |      |      |b     |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |b     |      |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |b     |b     |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |      | a-   |      |b     |      |\
+------------------------------------------------------------------------\
+7 |      |b     |      |      |      |      |b     |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |b     |b     |      |      |      |      |b     |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |      |      |      |      | a-   |      |      |\
+------------------------------------------------------------------------\
+8 |      |      |b     |      |      |b     |      |      |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |b     |      |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+5 |      |b     |      |      |      |      |b     |      |      |      |\
+------------------------------------------------------------------------\
+6 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |b     |      |bb    |      |      |      |b     |      |\
+------------------------------------------------------------------------\
+8 |      |      |      |      |      |      |      |      | a-   |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+\
+\
+-------------------------------------------------------------------------\
+  |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |\
+-------------------------------------------------------------------------\
+0 |x     |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+1 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+2 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+3 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+4 |      |      |      |      |      |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+5 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+6 |b     |      |      |      |b     |      |      |b     |      |      |\
+------------------------------------------------------------------------\
+7 |      |      |      |b     |b     |      |      |      |      |      |\
+------------------------------------------------------------------------\
+8 |      |      |      |      |      |      |      |      |      |      |\
+------------------------------------------------------------------------\
+9 |      |      |      |      |      |      |      |      |      | a-   |\
+------------------------------------------------------------------------\
+\
+We made it!!!\
+}
