@@ -1,8 +1,8 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define M 1500
-#define N 1500
+#define M 500
+#define N 500
 
 int main(int argc, char *argv) {
   //set number of threads here
@@ -36,7 +36,7 @@ int main(int argc, char *argv) {
     for (j = 0; j < N; j++) {
       sum = 0;
       for (k=0; k < M; k++) {
-        sum += A[k][i]*B[i][j];
+        sum += A[i][k]*B[k][j];
       }
       
       C[i][j] = sum;
@@ -46,3 +46,4 @@ int main(int argc, char *argv) {
   end = omp_get_wtime();
   printf("Time of computation: %f\n", end-start);
 }
+

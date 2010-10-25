@@ -1,9 +1,10 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define M 500
-#define N 500
-#define THREADS 3
+
+#define M 50
+#define N 50
+#define THREADS 8
 
 int main(int argc, char *argv) 
 {
@@ -36,13 +37,13 @@ int main(int argc, char *argv)
   
   for (i = 0; i < M; i++) 
   {
-    #pragma  omp parallel shared(A, B, C, i) private(j, k)
+    #pragma omp parallel shared(A, B, C, i) private(j, k)
     {
       for (j = 0; j < N; j++) 
       {
         sum = 0;
         for (k=0; k < M; k++) {
-          sum += A[k][i]*B[i][j];
+          sum += A[i][k]*B[k][j];
         }
         
         C[i][j] = sum;
