@@ -2,175 +2,120 @@
 #include <string.h> 
 #include <stddef.h> 
 #include <stdlib.h> 
-#include "mpi.h" 
+#include "omp.h"
+#include "md5.h"
+#include "mpi.h"
 
-#include "hashtable.h"
+#define CHAR_LOWER 33
+#define CHAR_UPPER 126
 
-#define CHUNKSIZE   10
-#define N           100 
-
-void openmp_code()
-{ 
-	int nthreads, tid, i, chunk; 
-	float a[N], b[N], c[N]; 
-	
-  for (i=0; i < N; i++) 
-		a[i] = b[i] = i * 1.0;             // initialize arrays 
-	chunk = CHUNKSIZE; 
-	
-  #pragma omp parallel shared(a,b,c,nthreads,chunk) private(i,tid) 
-	{ 
-		tid = omp_get_thread_num(); 
-		
-    if (tid == 0)
-    { 
-			nthreads = omp_get_num_threads(); 
-			printf("Number of threads = %d\n", nthreads); 
-		} 
-		
-    //printf("Thread %d starting...\n",tid); 
-		#pragma omp for schedule(dynamic,chunk) 
-		for (i=0; i<N; i++)
-    { 
-			c[i] = a[i] + b[i]; 
-			//printf("Thread %d: c[%d]= %f\n",tid,i,c[i]); 
-		} 
-	}  /* end of parallel section */ 
-} 
-
-int compare_ints(const void *a, const void *b)
+char * md5(char *str)
 {
-  double temp = *(const int*)a - *(const int*)b;
-  if (temp > 0)
-    return 1;
-  else if (temp < 0)
-    return -1;
-  else
-    return 0;
-}
-
-void parallel_sort(int sortme[], int size, int *output)
-{
-  struct hashtable *h;
-
-  int i;
-  //qsort(sortme, size, sizeof(int), compare_ints);
-
-  for(i=0; i < size; i++)
-  {
-    output[i] = sortme[i];
-  }
-}
-
-void merge(int a[], int b[], int c[], int k, int j)
-{
-   int indexA = 0, indexB = 0, indexC = 0;
-   
-   while(indexA < k && indexB < j)
-   {
-      if(a[indexA] < b[indexB]) {
-        c[indexC] = a[indexA];
-         indexA++;
-      } else {
-         c[indexC] = b[indexB];
-         indexB++;
-      }
-
-      indexC++;
-   }
-
-   while(indexA < k)
-   {
-      c[indexC]=a[indexA];
-      indexA++;
-      indexC++;
-   }
-
-   while(indexB < j)
-   {
-      c[indexC]=b[indexB];
-      indexB++;
-      indexC++;
-   }
-}
-
-main(int argc, char **argv ) 
-{ 
-  int data[CHUNKSIZE];
-	int i, rank, size, type=99;
-
-	MPI_Status status; 
-	MPI_Init(&argc, &argv); 
-	MPI_Comm_size(MPI_COMM_WORLD, &size); 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
-	
-  if(rank == 0) 
-  { 
-    int generated_data[N]; 
-    
-    for(i=0; i < N; i++)
-      generated_data[i] = N - i;
-
-    int k = 0, current = 0;
-    for(i = 1; i < size; i++)
-    {
-		  int part[CHUNKSIZE];
-    
-      for(k = 0; k < CHUNKSIZE; k++)
-        data[k] = generated_data[k + current];
-      
-      current += CHUNKSIZE;
-
-      MPI_Send(data, CHUNKSIZE, MPI_INT, i, type, MPI_COMM_WORLD); 
-    }
-
-    //generate data for rank 0 machine
-    for(k = 0; k < CHUNKSIZE; k++)
-      data[k] = generated_data[k + current];
-  }
-	else 
-		MPI_Recv(data, CHUNKSIZE, MPI_INT, 0, type, MPI_COMM_WORLD, &status); 
-	
- 
-  int sorted[CHUNKSIZE];
+  md5_byte_t digest[16];
+  md5_state_t state;
+  md5_init  (&state);
+	md5_append(&state, str, strlen(str));
+	md5_finish(&state, digest);
   
-  parallel_sort(data, CHUNKSIZE, sorted);
-	
-  if(rank > 0) 
-    MPI_Send(sorted, CHUNKSIZE, MPI_INT, 0, type, MPI_COMM_WORLD);
+  char hex[16 * 2 + 1]; int i;
+  for (i = 0; i < 16; ++i)
+    sprintf(hex + i * 2, "%02x", digest[i]);
+  
+  return strdup(hex);
+}
+
+void openmp_code(char *hex, int start, int end, char *solution)
+{
+  int finished = 0;
+  
+  char str[6];
+
+  #pragma omp parallel shared(start, end, finished) private(str)
+  {
+    int a, b, c, d, e, f;
+    
+    #pragma omp for
+    for(a = start; a <= end; a++)
+    for(b = CHAR_LOWER; b <= CHAR_UPPER; b++)
+    for(c = CHAR_LOWER; c <= CHAR_UPPER; c++)
+    for(d = CHAR_LOWER; d <= CHAR_UPPER; d++)
+    for(e = CHAR_LOWER; e <= CHAR_UPPER; e++)
+    for(f = CHAR_LOWER; f <= CHAR_UPPER; e++)
+    {
+      if(finished == 1) continue;
+
+      str[0] = a;
+      str[1] = b;
+      str[2] = c;
+      str[3] = d;
+      str[4] = e;
+      str[5] = f;
+
+      char *sum = md5(str);
+      int result = strcmp(sum, hex);
+      free(sum);
+      
+      if(result == 0) 
+      {
+        strcpy(solution, str);
+        
+        finished = 1;
+      }
+    }
+  }
+}
+
+int main(int argc, char **argv)
+{
+  int data[2];
+  int i, rank, size, type = 404;
+  MPI_Status status;
+  MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &size); 
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  //just generate some md5 hash for testing
+  char *hex =  md5("a!23kd");
 
   if(rank == 0)
   {
-    int solution[N];
-    int chunks_recevied = 1;
-    int sorted_chunk[CHUNKSIZE];
-    size_t css = CHUNKSIZE;//current solution size
+    printf("there are %d machines to send data to.\n", size);
     
-    merge(NULL, sorted, solution, 0, CHUNKSIZE);//merge rank0's list
+    int work_per_node = (CHAR_UPPER - CHAR_LOWER) / size;
 
-    while(1)
+    printf("each machine should do %d outermost itereations\n", work_per_node);
+
+    int start = CHAR_LOWER;
+    int end   = CHAR_LOWER + work_per_node;
+
+    for(i = 1; i < size; i++)
     {
-      MPI_Recv(sorted_chunk, CHUNKSIZE, MPI_INT, MPI_ANY_SOURCE, type, MPI_COMM_WORLD, &status);
-      
-      int *temp = (int *)malloc(css * sizeof(int));
+      start = end + 1;
+      end   = start + work_per_node;
 
-      for(i = 0; i < css; i++) 
-        temp[i] = solution[i];
+      printf("machine: %d will start with %d and end with %d\n", i, start, end);
+      data[0] = start;
+      data[1] = end;
 
-      merge(temp, sorted_chunk, solution, css, CHUNKSIZE);
-   
-      chunks_recevied++;
-      css += CHUNKSIZE;
-      free(temp);
-
-      if(chunks_recevied >= N / CHUNKSIZE) break; 
+      MPI_Send(data, 2, MPI_INT, i, type, MPI_COMM_WORLD);
     }
 
+    //rank 0's work
+    data[0] = CHAR_LOWER;
+    data[1] = CHAR_LOWER + work_per_node;
 
-    for(i = 0; i < css; i++)
-      printf("solution[%d]: %d\n", i, solution[i]);
   }
+  else
+	  MPI_Recv(data, 2, MPI_INT, 0, type, MPI_COMM_WORLD, &status); 
 
-  MPI_Finalize(); 
+  printf("I am machine %d i should start at %d and end at %d\n", rank, data[0], data[1]);
+  
+  char solution[6]; 
+    
+  openmp_code(hex, data[0], data[1], solution);
+
+  printf("The string is: \"%s\"\n", solution);
+
+  //someone found an answer, no more work to do so abort
+  MPI_Abort(MPI_COMM_WORLD, 0);
 }
-
