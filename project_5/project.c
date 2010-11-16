@@ -40,7 +40,7 @@ void openmp_code(char *hex, int start, int end, char *solution)
     for(c = CHAR_LOWER; c <= CHAR_UPPER; c++)
     for(d = CHAR_LOWER; d <= CHAR_UPPER; d++)
     for(e = CHAR_LOWER; e <= CHAR_UPPER; e++)
-    for(f = CHAR_LOWER; f <= CHAR_UPPER; e++)
+    for(f = CHAR_LOWER; f <= CHAR_UPPER; f++)
     {
       if(finished == 1) continue;
 
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   //just generate some md5 hash for testing
-  char *hex =  md5("a!23kd");
+  char *hex =  md5("c!#:Ka");
 
   if(rank == 0)
   {
