@@ -1,0 +1,2 @@
+1.  Figure out way to distrubute the work among servers
+2.  Combine the parallel stuff with distrubuted stuff
